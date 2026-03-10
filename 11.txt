@@ -1,0 +1,320 @@
+1) اجعل الحكم النهائي يعتمد على finalOutcome
+
+لا تعتمد في:
+
+statistics_screen.dart
+
+history_screen.dart
+
+أي summary / helper / card
+
+على:
+
+tp1Hit
+
+tp2Hit
+
+stopLossHit
+
+بل اعتمد على:
+
+FinalOutcome.fullWin
+
+FinalOutcome.partialWin
+
+FinalOutcome.loss
+
+FinalOutcome.expired
+
+FinalOutcome.cancelled
+
+لماذا؟
+
+لأن:
+
+الصفقة قد تصل TP1
+
+ثم ترجع وتضرب الوقف
+
+وهنا status النهائي قد يكون stopLossHit
+
+لكن الحكم العادل عليها هو partialWin
+
+إذا بقيت الإحصائيات تعتمد على status، ستظلم النتائج.
+
+2) عدّل statistics_screen.dart
+
+في الإحصائيات احسب هكذا:
+
+Full Wins
+
+عدد الصفقات التي:
+
+finalOutcome == fullWin
+
+Partial Wins
+
+عدد الصفقات التي:
+
+finalOutcome == partialWin
+
+Losses
+
+عدد الصفقات التي:
+
+finalOutcome == loss
+
+Expired
+
+عدد الصفقات التي:
+
+finalOutcome == expired
+
+Cancelled
+
+عدد الصفقات التي:
+
+finalOutcome == cancelled
+
+Win Rate
+
+هنا عندك خياران:
+
+الخيار الأدق
+
+تحسب fullWin + partialWin ضمن النجاحات
+
+لكن تعرضهم منفصلين
+
+مثال:
+
+Full Wins: 12
+
+Partial Wins: 5
+
+Losses: 7
+
+ويمكن أيضًا تضيف:
+
+Adjusted Win Rate
+بحيث:
+
+fullWin = 1
+
+partialWin = 0.5
+
+لكن هذا اختياري لاحقًا.
+
+3) عدّل history_screen.dart
+
+في صفحة التاريخ لا تعرض فقط:
+
+status
+
+بل اعرض أيضًا:
+
+finalOutcome
+
+مثال العرض الصحيح
+
+بدل أن يرى المستخدم:
+
+stopLossHit
+
+يشوف:
+
+Partial Win
+إذا كانت الصفقة وصلت TP1 ثم رجعت
+
+الأفضل تعرض:
+
+العملة
+
+نوع التوصية
+
+finalOutcome
+
+pnlPct
+
+durationMinutes
+
+marketMode
+
+closedAt
+
+4) اجعل البطاقات والألوان تعتمد على finalOutcome
+
+في UI:
+
+Full Win
+
+لون أخضر قوي
+
+Partial Win
+
+لون أخضر/أصفر أو برتقالي هادئ
+
+Loss
+
+أحمر
+
+Expired
+
+رمادي أو أصفر هادئ
+
+Cancelled
+
+رمادي
+
+هذا سيجعل التطبيق أوضح بكثير.
+
+5) تأكد أن signal_tracking_engine.dart يكتب finalOutcome دائمًا
+
+راجع كل مسارات الإغلاق وتأكد:
+
+إذا وصلت TP2
+
+finalOutcome = fullWin
+
+إذا وصلت TP1 ثم ضربت الوقف
+
+finalOutcome = partialWin
+
+إذا ضربت الوقف بدون TP1
+
+finalOutcome = loss
+
+إذا انتهت المدة
+
+finalOutcome = expired
+
+إذا ألغيت يدويًا أو منطقيًا
+
+finalOutcome = cancelled
+
+هذه النقطة مهمة جدًا.
+
+6) لا تجعل status بديلًا عن finalOutcome
+
+افصل بين الاثنين:
+
+status
+
+يصف الحالة التشغيلية الحالية أو آخر حالة تنفيذية:
+
+active
+
+tp1Hit
+
+tp2Hit
+
+stopLossHit
+
+expired
+
+cancelled
+
+finalOutcome
+
+يصف الحكم النهائي الحقيقي:
+
+fullWin
+
+partialWin
+
+loss
+
+expired
+
+cancelled
+
+هذا الفصل مهم جدًا، وهو الذي يكمل المشروع.
+
+7) أضف قسمًا صغيرًا في الإحصائيات
+
+أضف هذه القيم بشكل واضح:
+
+Full Wins
+
+Partial Wins
+
+Losses
+
+Expired
+
+Cancelled
+
+ولا تكتفي فقط بـ:
+
+Total Signals
+
+Win Rate
+
+لأن هذا يجعل المشروع احترافيًا أكثر.
+
+8) راجع أي دالة تحسب:
+
+best coin
+
+best timeframe
+
+best market mode
+
+average result
+
+وتأكد أنها تعتمد على finalOutcome أيضًا، وليس فقط status.
+
+لأن لو كانت تعتمد على status، ستخرج نتائج غير عادلة.
+
+9) اختبر 3 حالات يدويًا
+
+قبل أن تعتبره 10/10، جرّب منطقيًا هذه السيناريوهات:
+
+الحالة 1
+
+دخلت الصفقة → وصلت TP2
+يجب أن تظهر:
+
+finalOutcome = fullWin
+
+الحالة 2
+
+دخلت الصفقة → وصلت TP1 → رجعت وضربت الوقف
+يجب أن تظهر:
+
+finalOutcome = partialWin
+
+الحالة 3
+
+دخلت الصفقة → ضربت الوقف مباشرة
+يجب أن تظهر:
+
+finalOutcome = loss
+
+إذا هذه الثلاثة اشتغلت صح في:
+
+tracking
+
+history
+
+statistics
+
+فهنا فعليًا تكون وصلت للمرحلة النهائية.
+
+10) بعد هذا أقول لك 10/10
+
+بصراحة، هذا الآن هو آخر تعديل مهم فعليًا.
+
+يعني باختصار شديد:
+
+اعمل هذه الأشياء:
+
+عدّل statistics_screen.dart ليحسب بناءً على finalOutcome
+
+عدّل history_screen.dart ليعرض finalOutcome
+
+راجع signal_tracking_engine.dart وتأكد أن كل إغلاق يكتب finalOutcome الصحيح
+
+افصل ألوان وملصقات الواجهة بناءً على finalOutcome
+
+اختبر الحالات الثلاث: fullWin / partialWin / loss
